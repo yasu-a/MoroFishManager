@@ -41,7 +41,7 @@ void setup() {
   semaphore = xSemaphoreCreateMutex();
 
   configTime(0, 0, "pool.ntp.org");
-  setenv("TZ", "JST-9", 1);
+  setenv("TZ", "GMT0", 1);
   tzset();  // Assign the local timezone from setenv for mktime()
 }
 
