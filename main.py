@@ -1,7 +1,8 @@
 import asyncio
 
 import uvicorn
-from fastapi import FastAPI
+from fastapi import FastAPI, status
+from fastapi.responses import RedirectResponse
 from starlette.responses import HTMLResponse
 
 from domain import FeedRepositoryActiveTaskExistsError, FeedRepositoryUnknownError
@@ -20,6 +21,7 @@ def create_feed_response(msg: str):
 
     page = """
     <html>
+    <link rel="stylesheet" href="https://cdn.simplecss.org/simple.min.css">
     <body>
         <h1>Feed</h1>
         <p>""" + msg + """</p>
@@ -36,6 +38,11 @@ def create_feed_response(msg: str):
     </html>
     """
     return page
+
+
+@app.get("/")
+async def root():
+    return RedirectResponse("/feed", status_code=status.HTTP_303_SEE_OTHER)
 
 
 @app.get("/feed", response_class=HTMLResponse)
