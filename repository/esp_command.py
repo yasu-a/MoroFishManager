@@ -18,6 +18,7 @@ def check_output(command_str: str) -> str:
     msg = s.recv(4096).decode("utf-8")
     while not msg.endswith("\n"):
         msg += s.recv(4096).decode("utf-8")
+    msg = msg.strip()
 
     print("COMMAND", repr(command_str), "->", repr(msg))
     msg_split = msg.split(" ", maxsplit=3)

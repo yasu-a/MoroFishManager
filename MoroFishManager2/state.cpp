@@ -16,7 +16,7 @@ static unsigned long get_time() {
   return now;
 }
 
-#define MAX_HISTORY 4
+#define MAX_HISTORY 64
 
 static History histories[MAX_HISTORY];
 static int history_count = 0;
