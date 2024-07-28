@@ -15,10 +15,10 @@ def check_output(command_str: str) -> str:
     s.setsockopt(socket.SOL_SOCKET, socket.SO_REUSEADDR, 1)
 
     s.sendall(command_str.encode("utf-8"))
-    msg = s.recv(4096).decode("utf-8")
-    while not msg.endswith("\n"):
-        msg += s.recv(4096).decode("utf-8")
-    msg = msg.strip()
+    msg = s.recv(256)
+    while b"\n" not in msg:
+        msg += s.recv(256)
+    msg = msg.decode("utf-8").strip()
 
     print("COMMAND", repr(command_str), "->", repr(msg))
     msg_split = msg.split(" ", maxsplit=3)
