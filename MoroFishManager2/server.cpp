@@ -56,10 +56,9 @@ void process_command(WiFiClient &client, const String command) {
 void loop() {
   WiFiClient client = server.available();
   if (client) {  //接続PCが存在
-    while (client.available()) {
-      String command = client.readStringUntil('\n');
-      process_command(client, command);
-    }
+    String command = client.readStringUntil('\n');
+    process_command(client, command);
+    client.println("\n\n\n\n\n");
     client.stop();
   }
 }

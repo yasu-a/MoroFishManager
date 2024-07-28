@@ -15,7 +15,7 @@ def create_feed_response(msg: str):
     state = "ACTIVE" if get_feed_repository().is_feed_active() else "INACTIVE"
 
     histories = "".join(
-        f"<li><b>{h.title}</b> - {h.timestamp!s}</li>"
+        f"<li><b>{h.timestamp!s}</b> - {h.title}</li>"
         for h in get_feed_repository().get_feed_history()
     )
 
@@ -46,8 +46,8 @@ async def root():
 
 
 @app.get("/feed", response_class=HTMLResponse)
-async def root():
-    return create_feed_response(msg="")
+async def root(msg: str = ""):
+    return create_feed_response(msg=msg)
 
 
 @app.get("/feed/update", response_class=HTMLResponse)
@@ -55,11 +55,20 @@ async def feed_update(led_only: bool = False):
     try:
         get_feed_repository().feed(led_only=led_only)
     except FeedRepositoryActiveTaskExistsError:
-        return create_feed_response(msg="Task is active")
+        return RedirectResponse(
+            "/feed?msg=" + "Task is active",
+            status_code=status.HTTP_303_SEE_OTHER,
+        )
     except FeedRepositoryUnknownError:
-        return create_feed_response(msg="Unkown error occurred")
+        return RedirectResponse(
+            "/feed?msg=" + "Unknown error occurred",
+            status_code=status.HTTP_303_SEE_OTHER,
+        )
     else:
-        return create_feed_response(msg="Feed activated successfully")
+        return RedirectResponse(
+            "/feed?msg=" + "Feed activated successfully",
+            status_code=status.HTTP_303_SEE_OTHER,
+        )
 
 
 async def main():
