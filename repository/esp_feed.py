@@ -1,4 +1,4 @@
-from datetime import datetime, timezone, timedelta
+from datetime import datetime
 
 from domain import AbstractFeedRepository, FeedRepositoryUnknownError, \
     FeedRepositoryActiveTaskExistsError, FeedHistory
@@ -33,11 +33,14 @@ class ESPFeedRepository(AbstractFeedRepository):
         except ESPCommandError:
             raise FeedRepositoryUnknownError()
         else:
-            n, *values = output.split(" ")
-            n = int(n)
+            values = output.split(" ")
             histories = []
-            for i in range(n):
-                title, timestamp = values[i].split(",")
-                timestamp = datetime.fromtimestamp(int(timestamp))
-                histories.append(FeedHistory(title=title, timestamp=timestamp))
+            for value in values:
+                value = value.strip()
+                if not value:
+                    continue
+                title, started_at, ended_at = value.split(",")
+                started_at = datetime.fromtimestamp(int(started_at))
+                ended_at = datetime.fromtimestamp(int(ended_at))
+                histories.append(FeedHistory(title=title, started_at=started_at, ended_at=ended_at))
             return list(reversed(histories))

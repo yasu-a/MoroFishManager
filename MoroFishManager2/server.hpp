@@ -5,7 +5,13 @@
 
 namespace server {
 
-static WiFiServer server(80);
+#define WIFI_CONNECTION_TIMEOUT_MS 5000
+#define WIFI_CONNECTION_RETRY_MAX 5
+#define WIFI_CONNECTION_RETRY_DELAY_MS 2000
+#define HOSTNAME "sakana-esp-main"
+#define SERVER_PORT 8080
+
+static WiFiServer server(SERVER_PORT);
 
 void setup();
 void loop();

@@ -18,7 +18,8 @@ class FeedRepositoryUnknownError(FeedRepositoryError):
 @dataclass
 class FeedHistory:
     title: str
-    timestamp: datetime
+    started_at: datetime
+    ended_at: datetime
 
 
 class AbstractFeedRepository(ABC):

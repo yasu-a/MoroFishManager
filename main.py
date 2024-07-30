@@ -15,7 +15,7 @@ def create_feed_response(msg: str):
     state = "ACTIVE" if get_feed_repository().is_feed_active() else "INACTIVE"
 
     histories = "".join(
-        f"<li><b>{h.timestamp!s}</b> - {h.title}</li>"
+        f"<li><b>{h.started_at!s}</b> - {h.title}</li>"
         for h in get_feed_repository().get_feed_history()
     )
 

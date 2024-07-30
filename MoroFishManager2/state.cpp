@@ -1,8 +1,15 @@
-#include "state.hpp"
 #include <Arduino.h>
+#include "state.hpp"
+
 #include "time.h"
+#include "domain.hpp"
+#include "history.hpp"
 
 namespace state {
+
+using namespace domain;
+
+static volatile State state;
 
 // Function that gets current epoch time
 static unsigned long get_time() {
@@ -16,33 +23,16 @@ static unsigned long get_time() {
   return now;
 }
 
-#define MAX_HISTORY 64
-
-static History histories[MAX_HISTORY];
-static int history_count = 0;
-
-static void append_history_unlocked(History history) {
-  if (history_count >= MAX_HISTORY) {
-    for (int i = 1; i < MAX_HISTORY; i++) {
-      // histories[i - 1] = histories[i];
-      memcpy(&histories[i - 1], &histories[i], sizeof(History));
-    }
-    history_count--;
-  }
-  histories[history_count] = history;
-  history_count++;
-}
+namespace feed {
 
 static volatile SemaphoreHandle_t semaphore;
-static volatile bool feed_active = false;
-static volatile FeedMode feed_mode = FeedMode::LED_ONLY;
 
 void setup() {
   semaphore = xSemaphoreCreateMutex();
 
-  configTime(0, 0, "pool.ntp.org");
-  setenv("TZ", "GMT0", 1);
-  tzset();  // Assign the local timezone from setenv for mktime()
+  state.feed_state.is_active = false;
+  state.feed_state.start_at = 0;
+  state.feed_state.feed_mode = FeedMode::LED_ONLY;
 }
 
 static void lock() {
@@ -53,50 +43,54 @@ static void unlock() {
   xSemaphoreGive(semaphore);
 }
 
-bool begin_feed(FeedMode feed_mode) {
+bool begin(FeedMode mode) {
   lock();
   bool result;
-  if (feed_active) {
+  if (state.feed_state.is_active) {
     result = false;
   } else {
-    feed_active = true;
-    state::feed_mode = feed_mode;
+    state.feed_state.feed_mode = mode;
+    state.feed_state.start_at = get_time();
+    state.feed_state.is_active = true;
     result = true;
   }
   unlock();
   return result;
 }
 
-void set_feed_end() {
+bool is_active() {
   lock();
-  if (feed_active) {
-    History history = { feed_mode, get_time() };
-    append_history_unlocked(history);
-  }
-  feed_active = false;
-  unlock();
-}
-
-bool is_feed_active() {
-  lock();
-  bool result = feed_active;
+  bool result = state.feed_state.is_active;
   unlock();
   return result;
 }
 
-FeedMode get_feed_mode() {
+FeedMode get_mode() {
   lock();
-  FeedMode result = feed_mode;
+  FeedMode mode = state.feed_state.feed_mode;
   unlock();
-  return result;
+  return mode;
 }
 
-int get_history_count() {
-  return history_count;
+void end() {
+  lock();
+  state.feed_state.is_active = false;
+  unsigned long ended_at = get_time();
+  history::feed::add(state.feed_state.feed_mode, state.feed_state.start_at, ended_at);
+  unlock();
 }
 
-History get_history(int i) {
-  return histories[i];
 }
+
+void setup() {
+  Serial.println("[state.cpp] setup");
+
+  feed::setup();
+
+  configTime(0, 0, "pool.ntp.org");
+  setenv("TZ", "GMT0", 1);
+  tzset();  // Assign the local timezone from setenv for mktime()
+}
+
 
 }
