@@ -8,7 +8,7 @@ namespace worker {
 
 using namespace domain;
 
-static const int PIN_LED = 13;
+static const int PIN_LED = 32;
 
 void setup() {
   Serial.println("[worker.cpp] setup");
